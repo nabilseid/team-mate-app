@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ChatMessage } from "./hooks/useConsumer";
 import useWebSocket from "./hooks/useWebSocket";
+import ReactMarkdown from 'react-markdown';
 
 function App() {
   const { sessionId, chatHistory, sendTextMessage } = useWebSocket();
@@ -33,18 +34,33 @@ interface ChatWindowProps {
 }
 
 const ChatWindow: React.FC<ChatWindowProps> = ({ chatHistory }) => {
+  const chatWindowRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (chatWindowRef.current) {
+      chatWindowRef.current.scrollTo({
+        top: chatWindowRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+  }, [chatHistory]);
+
   return (
-    <div className="w-4/5 max-w-3xl h-96 overflow-y-auto bg-white border border-gray-300 rounded-lg p-4 mb-4">
+    <div
+      ref={chatWindowRef}
+      className="w-4/5 max-w-3xl h-96 overflow-y-auto bg-white border border-gray-300 rounded-lg p-4 mb-4"
+    >
       {chatHistory.map((message) => (
         <div
           key={message.id}
-          className={`mb-4 p-3 rounded-lg ${
-            message.isUserMessage
-              ? "bg-green-100 self-end"
-              : "bg-red-100 self-start"
-          }`}
+          className={`mb-4 p-3 rounded-lg ${message.isUserMessage
+            ? "bg-green-100 self-end"
+            : "bg-red-100 self-start"
+            }`}
         >
-          <div className="mb-2">{message.message}</div>
+          <div className="mb-2">
+            <ReactMarkdown>{message.message}</ReactMarkdown>
+          </div>
           {/* <div className="text-xs text-gray-500">{message.timestamp}</div> */}
         </div>
       ))}
